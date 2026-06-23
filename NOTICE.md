@@ -5,7 +5,7 @@
 
 > 校验：App 下载后由 `ModelDownloadManager` 做 SHA-256 校验
 > （`image-processor-swift/Sources/ImageProcessorSDK/ML/ModelDownloadManager.swift`）。
-> 下列哈希即代码中 pin 的值（quality_assessment 当前 App 未接入，哈希已托管备用）。
+> 下列哈希即代码中 pin 的值。
 
 ---
 
@@ -44,22 +44,20 @@
 
 ---
 
-## 3. quality_assessment.onnx — 感知质量（仅托管，App 未接入）
+## 3. lpips_alex.onnx — 感知差异（LPIPS）
 
 | 项 | 内容 |
 |----|------|
-| 用途 | 图像感知质量评分 |
-| 上游模型 | **Swin Transformer**（tiny, patch4, window7, 224×224）— Microsoft，<https://github.com/microsoft/Swin-Transformer> |
-| 许可证 | **MIT**（见 `LICENSES/Swin-Transformer-LICENSE.txt`） |
-| 制品来源 | HuggingFace `onnx-community/swin-tiny-patch4-window7-224-finetuned-image_quality-ONNX` |
-| 文件大小 | 112,769,969 字节 |
-| **SHA-256** | `e3d39aa7f89cf87e518315649126096cf0b9cd908075c119e91a2a494dd13841` |
+| 用途 | 双图感知距离（衡量压缩感知损失；越低越好） |
+| 上游模型 | **LPIPS (Learned Perceptual Image Patch Similarity)** — Richard Zhang 等，<https://github.com/richzhang/PerceptualSimilarity> |
+| 许可证 | **BSD**（见 `LICENSES/LPIPS-LICENSE.txt`）；骨干 AlexNet（PyTorch，BSD） |
+| 论文 | Richard Zhang 等. *The Unreasonable Effectiveness of Deep Features as a Perceptual Metric.* CVPR 2018. |
+| 制品来源 | 本项目 PyTorch→ONNX 导出（`lpips.LPIPS(net='alex')`，legacy exporter 权重内嵌） |
+| 输入 / 输出 | 双输入 `img1`/`img2`（[batch,3,h,w]，[-1,1]，256×256）→ `distance`（标量） |
+| 文件大小 | 9,897,322 字节 |
+| **SHA-256** | `6680f203b2e44e288a337e17828d17d5fa353ecd1f2433f2cb172d3c366c4246` |
 
-**MIT 合规**：再分发需保留版权声明与许可证文本。
-
-> ⚠ **App 当前未接入**：路线 B（S3/P3-1）已移除 App 的 perceptual-quality 全链——该 swin
-> 模型本质为图像分类器，并非真正的感知质量回归器，原管线缺 LPIPS 双图输入、属死代码。
-> 本文件仅托管留档与未来重接。真正接入需换质量回归模型（NIMA/DBCNN）+ LPIPS 双图输入。
+**BSD 合规**：再分发需保留版权声明（© 2018 Richard Zhang 等）与许可证文本。
 
 ---
 
@@ -69,7 +67,8 @@
 
 - `esrgan_x2.onnx`（Real-ESRGAN，BSD-3）— App 使用中
 - `u2net.onnx`（U²-Net，Apache-2；经 rembg MIT 工具转换）— App 使用中
-- `quality_assessment.onnx`（Swin Transformer，MIT）— 仅托管，App 未接入
+- `lpips_alex.onnx`（LPIPS，BSD）— App 使用中（感知差异）
 
-> 若未来调整模型（换官方制品 / 换模型 / 重接质量线），须同步更新本声明、对应 LICENSE
-> 文件、README，以及 App 侧 `ModelDownloadManager` 中的 `expectedSHA256`/`remoteURL`。
+> 历史：曾托管 `quality_assessment.onnx`（Swin Transformer），经实测对真实质量变化无区分度，
+> 已移除并改用语义正确的 LPIPS。若未来调整模型，须同步更新本声明、对应 LICENSE 文件、
+> README，以及 App 侧 `ModelDownloadManager` 中的 `expectedSHA256`/`remoteURL`。
